@@ -2,9 +2,23 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:translator/translator.dart';
+import '../modelUI/boll.dart';
 import '../modelUI/shodow.dart';
 import '../utils/colors.dart';
 import 'package:shake/shake.dart';
+
+void main() {
+  runApp(MagicBallApp());
+}
+
+class MagicBallApp extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: MagicBallScreen(),
+    );
+  }
+}
 
 class MagicBallScreen extends StatefulWidget {
   const MagicBallScreen({Key? key}) : super(key: key);
@@ -14,6 +28,7 @@ class MagicBallScreen extends StatefulWidget {
 }
 
 class _MagicBallScreenState extends State<MagicBallScreen> {
+  bool _isDarkTheme = false;
   bool _isLoading = false;
   bool _isError = false;
   String magicResponse = '';
@@ -23,16 +38,18 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Инициализация ShakeDetector внутри метода initState
     detector = ShakeDetector.autoStart(onPhoneShake: () {
-      fetchMagicResponse(); // Вызов функции fetchMagicResponse при тряске телефона
+      setState(() {
+        magicResponse = '';
+        _isLoading = true;
+      });
+      fetchMagicResponse();
     });
   }
 
   @override
   void dispose() {
-    detector?.stopListening(); // Остановка ShakeDetector при удалении виджета
+    detector?.stopListening();
     super.dispose();
   }
 
@@ -58,135 +75,190 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
       } else {
         setState(() {
           _isError = true;
-          magicResponse = 'Произошла ошибка, пожалуйста, повторите попытку.';
+          magicResponse = 'Ошибка';
         });
       }
     } catch (e) {
-      // Обработка ошибки, если нет интернета или сервер не ответил
       setState(() {
         _isError = true;
-        magicResponse =
-            'Произошла ошибка, пожалуйста, проверьте интернет-соединение и повторите попытку.';
+        magicResponse = 'Проверьте интернет-соединение';
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
       });
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [blueColor, darkColor],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        width: double.infinity,
-        child: Column(children: [
-          Flexible(
-            flex: 3,
-            child: Container(),
-          ),
-          InkWell(
-            onTap: () {
-              setState(() {
-                magicResponse = '';
-                _isLoading = true;
-              });
-
-              fetchMagicResponse().then((_) {
-                setState(() {
-                  _isLoading = false;
-                });
-              });
-            },
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Container(
-                  width: 319,
-                  height: 319,
-                  // color: Colors.green,
-                  child: Image.asset('images/planet.png'),
-                ),
-                if ((magicResponse.isNotEmpty) || _isLoading)
-                  Image.asset(
-                    'images/dark.png',
-                    width: 319,
-                    height: 319,
-                  ),
-                if (_isError)
-                  Image.asset(
-                    'images/planetRed.png',
-                    width: 319,
-                    height: 319,
-                  ),
-                Text(
-                  magicResponse,
-                  style: TextStyle(color: Colors.white, fontSize: 20),
-                  textAlign: TextAlign.center,
-                ),
-              ],
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
+      home: Scaffold(
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: _isDarkTheme
+                  ? [blueColor, Colors.black] // Градиент для темной темы
+                  : [colorWhite, coloreLight], // Градиент для светлой темы
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
             ),
           ),
-          Flexible(
-            flex: 1,
-            child: Container(),
-          ),
-          const OvalStack(),
-          Flexible(
-            flex: 1,
-            child: Container(),
-          ),
-          const Column(
+          width: double.infinity,
+          child: Column(
             children: [
-              Text(
-                'Нажмите на шар',
-                style: TextStyle(color: greyColor, fontSize: 16),
+              SizedBox(height: 24),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  IconButton(
+                    onPressed: () {
+                      setState(() {
+                        _isDarkTheme = !_isDarkTheme;
+                      });
+                    },
+                    icon: Icon(
+                      _isDarkTheme ? Icons.wb_sunny : Icons.nights_stay,
+                      color: Colors.white,
+                    ),
+                  ),
+                  SizedBox(width: 16),
+                ],
               ),
-              Text(
-                'или потрясите телефон',
-                style: TextStyle(color: greyColor, fontSize: 16),
+              Flexible(
+                flex: 3,
+                child: Container(),
               ),
-              SizedBox(
-                height: 80,
-              )
+              AnimationWidget(
+                magicResponse: magicResponse,
+                isLoading: _isLoading,
+                isError: _isError,
+                onPhoneShakeCallback: fetchMagicResponse,
+                fetchMagicResponse: fetchMagicResponse,
+              ),
+              Flexible(
+                flex: 1,
+                child: Container(),
+              ),
+              OvalStack(isError: _isError),
+              Flexible(
+                flex: 1,
+                child: Container(),
+              ),
+              const Column(
+                children: [
+                  Text(
+                    'Нажмите на шар',
+                    style: TextStyle(color: greyColor, fontSize: 16),
+                  ),
+                  Text(
+                    'или потрясите телефон',
+                    style: TextStyle(color: greyColor, fontSize: 16),
+                  ),
+                  SizedBox(
+                    height: 80,
+                  )
+                ],
+              ),
             ],
           ),
-        ]),
+        ),
       ),
     );
   }
 }
 
-// class AnimationWidget extends StatefulWidget {
-//   const AnimationWidget({super.key});
+class AnimationWidget extends StatefulWidget {
+  String magicResponse;
+  bool isLoading;
+  bool isError;
+  final VoidCallback onPhoneShakeCallback;
+  final Future<void> Function() fetchMagicResponse;
 
-//   @override
-//   State<AnimationWidget> createState() => _AnimationWidgetState();
-// }
+  AnimationWidget({
+    required this.magicResponse,
+    required this.isLoading,
+    required this.isError,
+    required this.onPhoneShakeCallback,
+    required this.fetchMagicResponse,
+    Key? key,
+  }) : super(key: key);
 
-// class _AnimationWidgetState extends State<AnimationWidget>
-//     with SingleTickerProviderStateMixin {
-//   late final AnimationController _controller =
-//       AnimationController(vsync: this, duration: const Duration(seconds: 3));
-//   late Animation<Offset> _animation = Tween(
-//     begin: Offset.zero,
-//     end: Offset(0, 0.08),
-//   ).animate(_controller);
+  @override
+  State<AnimationWidget> createState() => _AnimationWidgetState();
+}
 
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
+class _AnimationWidgetState extends State<AnimationWidget>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _controller =
+      AnimationController(vsync: this, duration: const Duration(seconds: 3))
+        ..repeat(reverse: true);
+  late final Animation<Offset> _animation = Tween(
+    begin: Offset.zero,
+    end: const Offset(0, 0.08),
+  ).animate(_controller);
 
-//   @override
-//   Widget build(BuildContext context) {
-//     return SlideTransition(
-//       position: _animation,
-//       child: ,
-//     );
-//   }
-// }
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.isLoading) {
+      _controller.duration = const Duration(
+          seconds: 1); // Уменьшаем длительность анимации в режиме загрузки
+    } else {
+      _controller.duration = const Duration(
+          seconds: 3); // Восстанавливаем обычную длительность анимации
+    }
+
+    return SlideTransition(
+      position: _animation,
+      child: InkWell(
+        onTap: () {
+          setState(() {
+            widget.magicResponse = '';
+            widget.isLoading = true;
+          });
+
+          widget.fetchMagicResponse().then((_) {
+            setState(() {
+              widget.isLoading = false;
+            });
+          });
+        },
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Container(
+              width: 319,
+              height: 319,
+              child: Image.asset('images/planet.png'),
+            ),
+            if ((widget.magicResponse.isNotEmpty) || widget.isLoading)
+              Image.asset(
+                'images/dark.png',
+                width: 319,
+                height: 319,
+              ),
+            if (widget.isError)
+              Image.asset(
+                'images/planetRed.png',
+                width: 319,
+                height: 319,
+              ),
+            Text(
+              widget.magicResponse,
+              style: TextStyle(color: Colors.white, fontSize: 20),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

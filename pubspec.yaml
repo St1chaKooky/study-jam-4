@@ -28,4 +28,9 @@ flutter:
       - images/planet.png
       - images/planetRed.png
       - images/dark.png
+      - images/light.png
+      - images/lightRed.png
+      - images/planetLight.png
+
+
 
