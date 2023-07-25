@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 // ignore: must_be_immutable
 class AnimationWidget extends StatefulWidget {
+  bool isDark;
   String magicResponse;
   bool isLoading;
   bool isError;
@@ -11,6 +12,7 @@ class AnimationWidget extends StatefulWidget {
   AnimationWidget({
     required this.magicResponse,
     required this.isLoading,
+    required this.isDark,
     required this.isError,
     required this.onPhoneShakeCallback,
     required this.fetchMagicResponse,
@@ -46,50 +48,80 @@ class _AnimationWidgetState extends State<AnimationWidget>
     return SlideTransition(
       position: _animation,
       child: InkWell(
-        onTap: () {
-          setState(() {
-            widget.magicResponse =
-                ''; // Обращение к переданной переменной через widget
-            widget.isLoading =
-                true; // Обращение к переданной переменной через widget
-          });
-
-          widget.fetchMagicResponse().then((_) {
+          onTap: () {
             setState(() {
+              widget.magicResponse =
+                  ''; // Обращение к переданной переменной через widget
               widget.isLoading =
-                  false; // Обращение к переданной переменной через widget
+                  true; // Обращение к переданной переменной через widget
             });
-          });
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 319,
-              height: 319,
-              // color: Colors.green,
-              child: Image.asset('images/planet.png'),
-            ),
-            if ((widget.magicResponse.isNotEmpty) || widget.isLoading)
-              Image.asset(
-                'images/dark.png',
-                width: 319,
-                height: 319,
-              ),
-            if (widget.isError)
-              Image.asset(
-                'images/planetRed.png',
-                width: 319,
-                height: 319,
-              ),
-            Text(
-              widget.magicResponse,
-              style: TextStyle(color: Colors.white, fontSize: 20),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
-      ),
+
+            widget.fetchMagicResponse().then((_) {
+              setState(() {
+                widget.isLoading =
+                    false; // Обращение к переданной переменной через widget
+              });
+            });
+          },
+          child: widget.isDark
+              ? Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 319,
+                      height: 319,
+                      // color: Colors.green,
+                      child: Image.asset('images/planet.png'),
+                    ),
+                    if ((widget.magicResponse.isNotEmpty) || widget.isLoading)
+                      Image.asset(
+                        'images/dark.png',
+                        width: 319,
+                        height: 319,
+                      ),
+                    if (widget.isError)
+                      Image.asset(
+                        'images/planetRed.png',
+                        width: 319,
+                        height: 319,
+                      ),
+                    Text(
+                      widget.magicResponse,
+                      style: widget.isDark
+                          ? TextStyle(color: Colors.white, fontSize: 20)
+                          : TextStyle(color: Colors.black, fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Container(
+                      width: 319,
+                      height: 319,
+                      // color: Colors.green,
+                      child: Image.asset('images/planetLight.png'),
+                    ),
+                    if ((widget.magicResponse.isNotEmpty) || widget.isLoading)
+                      Image.asset(
+                        'images/light.png',
+                        width: 319,
+                        height: 319,
+                      ),
+                    if (widget.isError)
+                      Image.asset(
+                        'images/ightRed.png',
+                        width: 319,
+                        height: 319,
+                      ),
+                    Text(
+                      widget.magicResponse,
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )),
     );
   }
 }

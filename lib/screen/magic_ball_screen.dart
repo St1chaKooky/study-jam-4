@@ -132,6 +132,7 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
                 child: Container(),
               ),
               AnimationWidget(
+                isDark: _isDarkTheme,
                 magicResponse: magicResponse,
                 isLoading: _isLoading,
                 isError: _isError,
@@ -147,15 +148,19 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
                 flex: 1,
                 child: Container(),
               ),
-              const Column(
+              Column(
                 children: [
                   Text(
                     'Нажмите на шар',
-                    style: TextStyle(color: greyColor, fontSize: 16),
+                    style: _isDarkTheme
+                        ? TextStyle(color: greyColor, fontSize: 16)
+                        : TextStyle(color: Colors.black, fontSize: 16),
                   ),
                   Text(
                     'или потрясите телефон',
-                    style: TextStyle(color: greyColor, fontSize: 16),
+                    style: _isDarkTheme
+                        ? TextStyle(color: greyColor, fontSize: 16)
+                        : TextStyle(color: Colors.black, fontSize: 16),
                   ),
                   SizedBox(
                     height: 80,
@@ -164,99 +169,6 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
               ),
             ],
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class AnimationWidget extends StatefulWidget {
-  String magicResponse;
-  bool isLoading;
-  bool isError;
-  final VoidCallback onPhoneShakeCallback;
-  final Future<void> Function() fetchMagicResponse;
-
-  AnimationWidget({
-    required this.magicResponse,
-    required this.isLoading,
-    required this.isError,
-    required this.onPhoneShakeCallback,
-    required this.fetchMagicResponse,
-    Key? key,
-  }) : super(key: key);
-
-  @override
-  State<AnimationWidget> createState() => _AnimationWidgetState();
-}
-
-class _AnimationWidgetState extends State<AnimationWidget>
-    with SingleTickerProviderStateMixin {
-  late final AnimationController _controller =
-      AnimationController(vsync: this, duration: const Duration(seconds: 3))
-        ..repeat(reverse: true);
-  late final Animation<Offset> _animation = Tween(
-    begin: Offset.zero,
-    end: const Offset(0, 0.08),
-  ).animate(_controller);
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (widget.isLoading) {
-      _controller.duration = const Duration(
-          seconds: 1); // Уменьшаем длительность анимации в режиме загрузки
-    } else {
-      _controller.duration = const Duration(
-          seconds: 3); // Восстанавливаем обычную длительность анимации
-    }
-
-    return SlideTransition(
-      position: _animation,
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            widget.magicResponse = '';
-            widget.isLoading = true;
-          });
-
-          widget.fetchMagicResponse().then((_) {
-            setState(() {
-              widget.isLoading = false;
-            });
-          });
-        },
-        child: Stack(
-          alignment: Alignment.center,
-          children: [
-            Container(
-              width: 319,
-              height: 319,
-              child: Image.asset('images/planet.png'),
-            ),
-            if ((widget.magicResponse.isNotEmpty) || widget.isLoading)
-              Image.asset(
-                'images/dark.png',
-                width: 319,
-                height: 319,
-              ),
-            if (widget.isError)
-              Image.asset(
-                'images/planetRed.png',
-                width: 319,
-                height: 319,
-              ),
-            Text(
-              widget.magicResponse,
-              style: TextStyle(color: Colors.white, fontSize: 20),
-              textAlign: TextAlign.center,
-            ),
-          ],
         ),
       ),
     );
