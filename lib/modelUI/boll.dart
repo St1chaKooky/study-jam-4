@@ -87,9 +87,7 @@ class _AnimationWidgetState extends State<AnimationWidget>
                       ),
                     Text(
                       widget.magicResponse,
-                      style: widget.isDark
-                          ? TextStyle(color: Colors.white, fontSize: 20)
-                          : TextStyle(color: Colors.black, fontSize: 20),
+                      style: TextStyle(color: Colors.white, fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                   ],
@@ -117,7 +115,7 @@ class _AnimationWidgetState extends State<AnimationWidget>
                       ),
                     Text(
                       widget.magicResponse,
-                      style: TextStyle(color: Colors.white, fontSize: 20),
+                      style: TextStyle(color: Colors.black, fontSize: 20),
                       textAlign: TextAlign.center,
                     ),
                   ],
