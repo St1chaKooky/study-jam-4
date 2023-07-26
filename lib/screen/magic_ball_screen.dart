@@ -121,7 +121,7 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
                     },
                     icon: Icon(
                       _isDarkTheme ? Icons.wb_sunny : Icons.nights_stay,
-                      color: Colors.white,
+                      color: _isDarkTheme ? Colors.white : Colors.black,
                     ),
                   ),
                   SizedBox(width: 16),
@@ -143,7 +143,10 @@ class _MagicBallScreenState extends State<MagicBallScreen> {
                 flex: 1,
                 child: Container(),
               ),
-              OvalStack(isError: _isError),
+              OvalStack(
+                isError: _isError,
+                isDark: _isDarkTheme,
+              ),
               Flexible(
                 flex: 1,
                 child: Container(),
